@@ -68,3 +68,9 @@ At the initial build, hardware location injection, location clear, and behavior 
 - Added first-time Xcode installation, opening, USB pairing, and Developer Mode restart/confirmation instructions, following Apple’s Developer Mode documentation. Added the requested scoped `xattr` and `chmod` commands with working, unescaped home-directory paths to the hosted setup dialog, local app Help, and README.
 - Rebuilt the Mac download and confirmed its README and UI contain the same commands. Checked shell syntax without executing either command, validated ZIP integrity, and inspected the live setup dialog at a compact viewport. The taller setup dialogs scroll and command text wraps within the panel.
 - Published production deployment `dpl_AriNdDBSpR58k34SUK5hFzWXSRgc` at https://routepilot-zeta.vercel.app. This change updates setup documentation and styling; no device commands or playback behavior changed.
+
+## Git repository setup — September 26, 2026
+
+- Created private repository https://github.com/zahmsiyed/routepilot with default branch `codex/main` and connected it to the existing Vercel `routepilot` project. Source control is rooted at the RoutePilot app folder; no enclosing folders are included.
+- Reviewed 52 initial source files. Local environments, deployment credentials, generated cloud output, and cache files are excluded. Exported the committed files into a clean directory, built the hosted app and Mac download successfully, and passed all 116 Python and 27 JavaScript checks from that clean directory.
+- Vercel's Root Directory is `cloud`, access to source files outside that directory is enabled for the build, and `python3 build.py` now generates the hosted assets and stateless helpers on each deployment. Python 3.12 is pinned to match the existing hosted runtime.

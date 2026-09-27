@@ -22,7 +22,7 @@ python3 -B -m pytest -q tests cloud/tests/test_api.py
 
 Vercel uses `cloud` as the project's Root Directory with **Include source files outside of the Root Directory in the Build Step** enabled. The build command `python3 build.py` copies an allowlist of stateless Python helpers, static assets, and a Mac source download from the repository. The output directory is `public`. Generated files are intentionally excluded from source control; each deployment rebuilds them. Only the stateless cloud API and generated public files are served. Device environments, pairing records, local tokens, and Python virtual environments are excluded from the repository.
 
-Push to the repository's default branch to deploy production through the connected Vercel project. For a manual deployment, run `npx vercel link --project routepilot --scope zahmsiyeds-projects` from the repository root once, then `npx vercel --prod --scope zahmsiyeds-projects` from that same root. This includes the Mac sources needed by the build while Vercel runs the app from `cloud`.
+Push to the repository's default branch, `codex/main`, to deploy production through the connected Vercel project. The hosted Python runtime is pinned to 3.12. For a manual deployment, run `npx vercel link --project routepilot --scope zahmsiyeds-projects` from the repository root once, then `npx vercel --prod --scope zahmsiyeds-projects` from that same root. This includes the Mac sources needed by the build while Vercel runs the app from `cloud`.
 
 ## Launch
 
