@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="routepilot-token" content="__SESSION_TOKEN__">
+<title>RoutePilot</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/vendor/leaflet.css"><link rel="stylesheet" href="/static/style.css">
+<script defer src="/static/vendor/leaflet.js"></script><script defer src="/static/planner.js"></script><script defer src="/static/units.js"></script><script defer src="/static/client.js"></script><script defer src="/static/search.js"></script><script defer src="/static/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand"><span class="brand-mark" aria-hidden="true">↗</span> RoutePilot</span>
+  <div class="header-right"><span id="deviceBadge" class="badge">Preview only</span><button id="connectionButton" class="button">Connect iPhone</button><button id="helpButton" class="button help-button" aria-label="Help">?</button></div>
+</header>
+<div class="workspace">
+<aside class="sidebar" aria-label="Location controls">
+  <div class="settings">
+  <section>
+    <div class="movement-heading"><h1>Movement</h1><div class="units-picker" role="group" aria-label="Units"><button data-unit="metric" aria-pressed="true">Metric</button><button data-unit="imperial" aria-pressed="false">Imperial</button></div></div>
+    <div class="mode-picker" role="group" aria-label="Movement mode">
+      <button class="mode" data-mode="stationary" aria-pressed="false">Stationary</button>
+      <button class="mode active" data-mode="running" aria-pressed="true">Running</button>
+      <button class="mode" data-mode="driving" aria-pressed="false">Driving</button>
+    </div>
+    <p id="modeHint" class="hint">Follows pedestrian paths automatically.</p>
+  </section>
+  <section id="paceSection" class="pace-section">
+    <div class="speed-heading"><label for="speedNumber">Speed</label><span><input id="speedNumber" type="number" min="0.1" max="250" step="0.1" value="10" aria-label="Speed in kilometers per hour"> <span id="speedUnit">km/h</span></span></div>
+    <input id="speedRange" type="range" min="0.1" max="25" value="10" step="0.1" aria-label="Adjust speed">
+    <div class="motion-option"><label><input id="speedVariationEnabled" type="checkbox"> Vary speed</label><span>± <input id="speedVariation" type="number" min="0" max="50" step="0.1" value="1" aria-label="Speed variation range"><span id="variationUnit">km/h</span></span></div>
+    <p id="speedBand" class="micro" hidden></p>
+    <div class="motion-option"><label><input id="lateralEnabled" type="checkbox"> Lateral drift</label><span>± <input id="lateralVariation" type="number" min="0" max="2" step="0.1" value="0.75" aria-label="Lateral variation range"><span id="lateralUnit">m</span></span></div>
+    <p class="micro">Smooth, subtle variation while moving.</p>
+  </section>
+  <section class="checkpoint-section">
+    <div class="section-heading"><h2 id="routeHeading">Checkpoints <span id="pointCount">0</span></h2><button id="undoButton" class="text-button" disabled>↶ Undo</button></div>
+    <p id="routeHint" class="hint">Click map to add. Drag to move. Click marker to remove.</p>
+    <div id="waypoints" class="waypoints"><p class="empty-route">No checkpoints yet.</p></div>
+    <button id="clearButton" class="text-button clear-button" hidden>Clear all</button>
+  </section>
+  <details id="moreOptions" class="more-options"><summary>More options</summary>
+    <label class="field-label" for="coordinateInput">Add by coordinates</label>
+    <form id="coordinateForm" class="coordinate-form"><input id="coordinateInput" placeholder="Latitude, longitude" autocomplete="off"><button class="button" type="submit" aria-label="Add coordinates">Add</button></form>
+    <div class="extra-row"><label><input id="loopInput" type="checkbox"> Loop route</label><button id="reverseButton" class="text-button">Reverse</button></div>
+    <div class="file-actions"><button id="importButton" class="button">Import GPX checkpoints</button><button id="saveButton" class="button">Export GPX</button><input id="fileInput" type="file" accept=".gpx,application/gpx+xml" hidden></div>
+    <button id="demoButton" class="text-button">Load sample route</button>
+    <p class="micro">Map and route requests use OpenStreetMap / FOSSGIS. GPX imports use up to 24 checkpoints and follow the selected route type.</p>
+  </details>
+  </div>
+  <section class="playback" aria-label="Playback controls">
+    <div class="route-summary"><span id="distanceStat">0.00 km</span><span id="durationStat">00:00</span></div>
+    <p id="liveMotion" class="live-motion" hidden></p>
+    <p id="routeStatus" class="route-status" role="status">Add two checkpoints to begin.</p>
+    <button id="retryButton" class="text-button" hidden>Retry route</button>
+    <progress id="progress" value="0" max="1" aria-label="Route progress" hidden></progress>
+    <button id="startButton" class="button primary" disabled>Start preview</button>
+    <div class="playback-secondary"><button id="pauseButton" class="button" hidden>Pause</button><button id="restoreButton" class="button" hidden>Stop preview</button></div>
+    <p id="playbackNote" class="micro">Preview only. Connect an iPhone to change its location.</p>
+  </section>
+</aside>
+<main class="map-pane" aria-label="Route map">
+  <div id="map" aria-label="Interactive route map"></div>
+  <div class="map-toolbar">
+    <div id="mapSearch" class="map-search">
+      <form id="locationSearchForm" class="location-search-form" role="search" aria-label="Location search">
+        <input id="locationSearchInput" type="search" placeholder="Search places or addresses" aria-label="Search places or addresses" maxlength="200" autocomplete="off" spellcheck="false">
+        <button id="clearSearchButton" type="button" class="clear-search" aria-label="Clear location search" hidden>×</button>
+        <button id="locationSearchButton" type="submit" class="button">Search</button>
+      </form>
+      <div id="searchPanel" class="search-panel" hidden>
+        <p id="searchStatus" class="search-status" role="status"></p>
+        <ol id="searchResults" class="search-results" aria-label="Matching locations"></ol>
+        <div id="selectedPlace" class="selected-place" hidden><strong id="selectedPlaceName"></strong><p id="selectedPlaceAddress"></p><button id="addSearchPoint" class="button primary">Add checkpoint</button><p id="searchEditHint" class="micro" hidden></p></div>
+        <p class="search-credit">Searches sent to <a href="https://photon.komoot.io" target="_blank" rel="noreferrer">Photon</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a></p>
+      </div>
+    </div>
+    <button id="fitButton" class="button">Fit route</button>
+  </div>
+  <span id="mapInstruction" class="map-instruction">Click to add a checkpoint</span>
+  <div id="tileError" class="tile-error" hidden>Map tiles are unavailable. Check your internet connection.</div>
+  <div class="map-footer">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> · <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noreferrer">FOSSGIS / OSRM</a> · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noreferrer">Fix the map</a></div>
+</main>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<dialog id="connectionDialog">
+  <div class="dialog-heading"><h2>Connect iPhone</h2><button class="close-dialog button" aria-label="Close connection dialog">×</button></div>
+  <p>For first-time Developer Mode setup, download <a href="https://developer.apple.com/xcode/" target="_blank" rel="noopener noreferrer">Xcode from Apple</a>, open it, and finish its first-launch setup. Keep Xcode open while pairing your iPhone.</p>
+  <p>Connect by USB, unlock your iPhone, and tap <strong>Trust This Computer</strong>. Select it in Xcode’s <strong>Device Hub</strong> (or <strong>Window → Devices and Simulators</strong> in older versions) and follow the pairing prompts so Developer Mode appears. On iPhone, enable <strong>Settings → Privacy &amp; Security → Developer Mode</strong>, restart, then confirm and enter your passcode. <a href="https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device" target="_blank" rel="noopener noreferrer">Apple’s setup guide</a></p>
+  <label class="field-label" for="deviceSelect">USB device</label><div class="device-select-row"><select id="deviceSelect"><option value="">Detecting devices…</option></select><button id="refreshDevices" class="button" aria-label="Refresh connected devices">↻</button></div>
+  <p id="connectionStatus" class="connection-status" role="status">Connecting does not change your location.</p>
+  <section id="connectionProgress" class="connection-progress" aria-label="Connection progress" hidden>
+    <div class="connection-progress-heading"><strong id="connectionHeading">Connecting</strong><span id="connectionElapsed"></span></div>
+    <ol id="connectionSteps" class="connection-steps" aria-label="Connection steps"></ol>
+    <p id="connectionHint" class="micro">Connecting does not change your location.</p>
+  </section>
+  <div class="dialog-actions"><button id="previewButton" class="button">Use preview</button><button id="connectButton" class="button primary">Connect</button></div>
+</dialog>
+<dialog id="helpDialog">
+  <div class="dialog-heading"><h2>How to use RoutePilot</h2><button class="close-dialog button" aria-label="Close help">×</button></div>
+  <details class="launcher-help"><summary>Allow the downloaded Mac launcher</summary>
+    <p>Unzip the Mac download so the <strong>RoutePilot</strong> folder is inside <strong>Downloads</strong>. Open Terminal and paste:</p>
+    <pre class="setup-commands" aria-label="Terminal commands to allow the RoutePilot launcher"><code>xattr -dr com.apple.quarantine ~/Downloads/RoutePilot
+chmod +x ~/Downloads/RoutePilot/"Launch RoutePilot.command"</code></pre>
+    <p>These commands remove the folder’s download quarantine flag and make the launcher executable. Adjust the path if needed, then double-click <strong>Launch RoutePilot.command</strong>.</p>
+  </details>
+  <p>Choose <strong>Stationary</strong> for one location, <strong>Running</strong> for pedestrian paths, or <strong>Driving</strong> for roads. Routes calculate automatically when you add, move, or remove checkpoints.</p>
+  <p>Click the map to add a numbered checkpoint, drag it to move it, or click the marker to remove it immediately. Remove also works from the list. Undo restores your last edit; ⌘Z works outside text fields.</p>
+  <p>Search for a place or address above the map and press Enter or Search. Select a match to preview it, then choose <strong>Add checkpoint</strong> or <strong>Use this location</strong>. Searching does not change the iPhone’s location. Include a city for more specific results. Search text is sent to Photon only when submitted.</p>
+  <p>Metric / Imperial changes speed, distance, and variation units. The underlying route and speed stay the same. Vary speed chooses smooth changes inside your ± range, bounded to 0.1–250 km/h. Lateral drift adds a smooth side-to-side offset of at most 2 m (6.6 ft), fading out at route corners and endpoints. Both options are off by default and apply only while moving.</p>
+  <p>Adjust speed, then press Start. Pause holds the current position. The endpoint stays applied until you press <strong>Restore real location</strong>.</p>
+  <p>Keep the Mac running and USB connected. Closing this tab does not stop an active simulation. If the phone disconnects, reconnect and Restore. If that fails, restart the iPhone.</p>
+  <p>Routing needs internet access and sends checkpoints to FOSSGIS. If routing fails, move a checkpoint or retry; playback does not fall back to a straight line. More options contains coordinates, looping, and GPX tools. GPX exports use the base speed and route, without random variations.</p>
+  <p class="micro">Individual iPhone apps may detect or ignore simulated locations. Speed controls coordinate timing; apps may report it differently.</p>
+</dialog>
+</body></html>
