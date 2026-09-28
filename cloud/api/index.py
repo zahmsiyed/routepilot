@@ -9,9 +9,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
-from routepilot_cloud.routes import Route, export_gpx, parse_gpx
+from routepilot_cloud.routes import Route, parse_gpx
 from routepilot_cloud.routing import parse_route_response
 from routepilot_cloud.geocoding import parse_places, search_query
+from routepilot_cloud.gpx import create_gpx
 
 MAX_BODY = 4_000_000
 LOCKS = {name: threading.Lock() for name in ('search', 'route')}
@@ -78,7 +79,7 @@ def dispatch(action, data):
             raise ValueError('Choose a GPX file smaller than 3.5 MB for the hosted app.')
         return {'points': parse_gpx(xml)}
     if action == 'export':
-        result = export_gpx(Route(data.get('points'), data.get('loop', False)), data.get('speed', 10), data.get('name', 'RoutePilot route'))
+        result = create_gpx(data)
         if len(result) > MAX_BODY:
             raise ValueError('This GPX is too large for the hosted app. Export it with the Mac controller or use a shorter route.')
         return result

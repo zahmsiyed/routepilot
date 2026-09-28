@@ -81,6 +81,20 @@ class HostedAPI(unittest.TestCase):
             self.assertEqual(code, 200)
             self.assertEqual(json.loads(body)['results'], result)
 
+    def test_creator_formats_and_invalid_time(self):
+        from xml.etree import ElementTree as ET
+        ns = {'g': 'http://www.topografix.com/GPX/1/1'}
+        data = {'points': [[37, -122], [37.0001, -122]], 'speed': 10, 'format': 'activity', 'mode': 'running', 'name': 'Simulated test', 'start_time': '2026-09-27T09:00:00-07:00'}
+        status, xml = self.post('/api/export', data)
+        self.assertEqual(status, 200)
+        root = ET.fromstring(xml)
+        self.assertIsNone(root.find('g:wpt', ns))
+        self.assertEqual(root.find('g:trk/g:trkseg/g:trkpt/g:time', ns).text, '2026-09-27T16:00:00.000000Z')
+        self.assertEqual(self.post('/api/export', {**data, 'start_time': 'bad'})[0], 400)
+        status, xml = self.post('/api/export', {**data, 'format': 'route', 'start_time': 'bad'})
+        self.assertEqual(status, 200)
+        self.assertFalse(ET.fromstring(xml).findall('.//g:time', ns))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,7 +6,7 @@
 <title>RoutePilot</title>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/vendor/leaflet.css"><link rel="stylesheet" href="/static/style.css">
-<script defer src="/static/vendor/leaflet.js"></script><script defer src="/static/planner.js"></script><script defer src="/static/units.js"></script><script defer src="/static/client.js"></script><script defer src="/static/search.js"></script><script defer src="/static/app.js"></script>
+<script defer src="/static/vendor/leaflet.js"></script><script defer src="/static/planner.js"></script><script defer src="/static/units.js"></script><script defer src="/static/client.js"></script><script defer src="/static/search.js"></script><script defer src="/static/gpx.js"></script><script defer src="/static/app.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -43,7 +43,7 @@
     <label class="field-label" for="coordinateInput">Add by coordinates</label>
     <form id="coordinateForm" class="coordinate-form"><input id="coordinateInput" placeholder="Latitude, longitude" autocomplete="off"><button class="button" type="submit" aria-label="Add coordinates">Add</button></form>
     <div class="extra-row"><label><input id="loopInput" type="checkbox"> Loop route</label><button id="reverseButton" class="text-button">Reverse</button></div>
-    <div class="file-actions"><button id="importButton" class="button">Import GPX checkpoints</button><button id="saveButton" class="button">Export GPX</button><input id="fileInput" type="file" accept=".gpx,application/gpx+xml" hidden></div>
+    <div class="file-actions"><button id="importButton" class="button">Import GPX checkpoints</button><input id="fileInput" type="file" accept=".gpx,application/gpx+xml" hidden></div>
     <button id="demoButton" class="text-button">Load sample route</button>
     <p class="micro">Map and route requests use OpenStreetMap / FOSSGIS. GPX imports use up to 24 checkpoints and follow the selected route type.</p>
   </details>
@@ -56,6 +56,7 @@
     <progress id="progress" value="0" max="1" aria-label="Route progress" hidden></progress>
     <button id="startButton" class="button primary" disabled>Start preview</button>
     <div class="playback-secondary"><button id="pauseButton" class="button" hidden>Pause</button><button id="restoreButton" class="button" hidden>Stop preview</button></div>
+    <button id="saveButton" class="button create-gpx-button" disabled>Create GPX</button>
     <p id="playbackNote" class="micro">Preview only. Connect an iPhone to change its location.</p>
   </section>
 </aside>
@@ -83,6 +84,34 @@
 </main>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
+<dialog id="gpxDialog" aria-labelledby="gpxHeading">
+  <div class="dialog-heading"><h2 id="gpxHeading">Create GPX</h2><button class="close-dialog button" aria-label="Close GPX creator">×</button></div>
+  <form id="gpxForm">
+    <p id="gpxRouteSummary" class="gpx-route-summary"></p>
+    <label class="field-label" for="gpxName">Name</label><input id="gpxName" class="gpx-input" maxlength="100" required>
+    <label class="field-label" for="gpxFormat">File type</label>
+    <select id="gpxFormat" class="gpx-input"><option value="activity">Timed track · activity file</option><option value="route">Planned route · no timestamps</option><option value="xcode">Xcode waypoints · device testing</option></select>
+    <div id="gpxTiming">
+      <label class="field-label" for="gpxStart">Start time <span id="gpxTimezone"></span></label><input id="gpxStart" class="gpx-input" type="datetime-local" min="1970-01-01T00:00" max="9998-12-31T23:59:59" step="1" required>
+      <p class="micro">Defaults to finishing now. Times are stored in UTC in the file.</p>
+      <div id="gpxMovingTiming">
+        <label class="field-label" for="gpxTimingMethod">Set timing by</label><select id="gpxTimingMethod" class="gpx-input"><option value="pace">Pace</option><option value="duration">Total duration</option></select>
+        <div id="gpxPaceField"><label id="gpxPaceLabel" class="field-label" for="gpxPace">Pace (min/km)</label><input id="gpxPace" class="gpx-input" type="text" placeholder="6:00" autocomplete="off" required></div>
+        <div id="gpxDurationField" hidden><label class="field-label" for="gpxDuration">Total duration (minutes)</label><input id="gpxDuration" class="gpx-input" type="number" min="0.0001" step="any" required></div>
+      </div>
+    </div>
+    <p id="gpxSummary" class="gpx-summary" role="status"></p>
+    <p id="gpxFormatNote" class="micro"></p>
+    <p id="gpxError" class="gpx-error" role="alert" hidden></p>
+    <button id="gpxDownload" class="button primary gpx-download" type="submit">Download GPX</button>
+    <p id="gpxSuccess" class="gpx-success" role="status" hidden>GPX created. Check your browser’s downloads.</p>
+  </form>
+  <details class="gpx-strava"><summary>Using a file with Strava</summary>
+    <p>Strava’s activity uploader needs a timestamp on each track point. Choose <strong>Timed track</strong> here, download it, then open <a href="https://www.strava.com/upload/select" target="_blank" rel="noopener noreferrer">Strava’s file uploader</a>. Review the activity type (choose <strong>Run</strong> for running) and visibility before saving. Keep simulated test activities <strong>Only You</strong>.</p>
+    <p>A generated GPX is labeled as simulated in its metadata. It does not automatically qualify as <strong>Virtual Run</strong>; that classification requires a supported trainer or treadmill integration. Strava import has not been verified with your account.</p>
+    <p class="micro"><a href="https://support.strava.com/en-us/articles/15402153-why-does-strava-say-time-information-is-missing-from-my-file" target="_blank" rel="noopener noreferrer">Timestamp requirements</a> · <a href="https://support.strava.com/en-us/articles/15401857-virtual-trainer-activities-on-strava" target="_blank" rel="noopener noreferrer">Virtual activities</a></p>
+  </details>
+</dialog>
 <dialog id="connectionDialog">
   <div class="dialog-heading"><h2>Connect iPhone</h2><button class="close-dialog button" aria-label="Close connection dialog">×</button></div>
   <p>For first-time Developer Mode setup, download <a href="https://developer.apple.com/xcode/" target="_blank" rel="noopener noreferrer">Xcode from Apple</a>, open it, and finish its first-launch setup. Keep Xcode open while pairing your iPhone.</p>
@@ -110,7 +139,7 @@ chmod +x ~/Downloads/RoutePilot/"Launch RoutePilot.command"</code></pre>
   <p>Metric / Imperial changes speed, distance, and variation units. The underlying route and speed stay the same. Vary speed chooses smooth changes inside your ± range, bounded to 0.1–250 km/h. Lateral drift adds a smooth side-to-side offset of at most 2 m (6.6 ft), fading out at route corners and endpoints. Both options are off by default and apply only while moving.</p>
   <p>Adjust speed, then press Start. Pause holds the current position. The endpoint stays applied until you press <strong>Restore real location</strong>.</p>
   <p>Keep the Mac running and USB connected. Closing this tab does not stop an active simulation. If the phone disconnects, reconnect and Restore. If that fails, restart the iPhone.</p>
-  <p>Routing needs internet access and sends checkpoints to FOSSGIS. If routing fails, move a checkpoint or retry; playback does not fall back to a straight line. More options contains coordinates, looping, and GPX tools. GPX exports use the base speed and route, without random variations.</p>
+  <p>Routing needs internet access and sends checkpoints to FOSSGIS. If routing fails, move a checkpoint or retry; playback does not fall back to a straight line. More options contains coordinates, looping, and GPX import. <strong>Create GPX</strong> exports a named timed track, an untimed planned route, or Xcode waypoints. Choose a start time and pace or total duration. Exports use constant pace and exact route geometry, without live speed variation or lateral drift. Loops export one lap.</p>
   <p class="micro">Individual iPhone apps may detect or ignore simulated locations. Speed controls coordinate timing; apps may report it differently.</p>
 </dialog>
 </body></html>

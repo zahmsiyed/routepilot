@@ -9,7 +9,8 @@ from .device import IPhoneDevice, PreviewDevice, list_devices, friendly_error
 from .engine import Engine
 from .connection import ConnectionProgress
 from .geocoding import Geocoder
-from .routes import Route, export_gpx, parse_gpx
+from .gpx import create_gpx
+from .routes import Route, parse_gpx
 from .routing import parse_route_response, MAX_RESPONSE_BYTES
 
 STATIC = Path(__file__).parent / 'static'
@@ -170,8 +171,7 @@ async def import_route(request):
 
 async def export_route(request):
     data = await body(request)
-    route = Route(data.get('points'), data.get('loop', False))
-    exported = await asyncio.to_thread(export_gpx, route, data.get('speed', 10), data.get('name', 'RoutePilot route'))
+    exported = await asyncio.to_thread(create_gpx, data)
     return web.Response(body=exported,
                         content_type='application/gpx+xml',
                         headers={'Content-Disposition': 'attachment; filename="routepilot.gpx"'})

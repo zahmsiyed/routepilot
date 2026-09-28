@@ -34,6 +34,23 @@ async def test_preview_lifecycle_and_export(client):
 
 
 @pytest.mark.asyncio
+async def test_gpx_creator_exports_without_changing_active_session(client):
+    from xml.etree import ElementTree as ET
+    await client.post('/api/start', json={'points': [[1, 2]], 'mode': 'stationary'})
+    before = await (await client.get('/api/status')).json()
+    data = {'points': [[37, -122], [37.001, -122]], 'mode': 'running', 'format': 'activity', 'name': 'Simulated run', 'speed': 12, 'start_time': '2026-09-27T08:00:00Z'}
+    response = await client.post('/api/export', json=data)
+    assert response.status == 200
+    ns = {'g': 'http://www.topografix.com/GPX/1/1'}
+    root = ET.fromstring(await response.read())
+    assert root.find('g:trk/g:trkseg/g:trkpt/g:time', ns).text == '2026-09-27T08:00:00.000000Z'
+    assert root.find('g:wpt', ns) is None
+    after = await (await client.get('/api/status')).json()
+    assert after['active'] and after['session_id'] == before['session_id'] and after['position'] == before['position']
+    assert (await client.post('/api/export', json={**data, 'start_time': 'invalid'})).status == 400
+
+
+@pytest.mark.asyncio
 async def test_bad_inputs_are_explained(client):
     r=await client.post('/api/start',json={'points':[[91,0]]});assert r.status==400
     r=await client.post('/api/start',json=[]);assert r.status==400

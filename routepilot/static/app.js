@@ -12,6 +12,7 @@ let busy = false, offline = true, polling = false, toastTimer, currentMarker;
 let pendingMotion = 0, motionGeneration = 0, networkEpoch = 0, statusError = '', liveSession = null, loadingSession = false, deviceRefresh = 0;
 let motionQueue = Promise.resolve(), draggingMarker = false, lastMarkerDrag = -Infinity, addedMarker = -1;
 let connectingRequest = false, connectionShown = false, ignoredConnectionAttempt = null;
+let gpxDraft = null, gpxSaving = false;
 try {
   const saved = JSON.parse(localStorage.getItem('routepilot-draft-v1'));
   if (saved && ['stationary', 'running', 'driving'].includes(saved.mode) && Array.isArray(saved.waypoints)) {
@@ -216,7 +217,6 @@ function renderDraft() {
   ['reverseButton', 'importButton', 'demoButton'].forEach(id => { $(id).disabled = locked(); });
   $('reverseButton').disabled = locked() || stationary || draft.waypoints.length < 2;
   $('loopInput').checked = draft.loop; $('loopInput').disabled = locked() || stationary;
-  $('saveButton').disabled = busy || offline || planner.state.status !== 'ready';
   renderMotion(); drawRoute(); renderStatus();
 }
 function renderStatus() {
@@ -240,6 +240,7 @@ function renderStatus() {
   $('progress').hidden = !live || state.mode === 'stationary'; $('progress').value = state.progress || 0;
   $('startButton').textContent = busy ? 'Working…' : iphone ? draft.mode === 'stationary' ? 'Apply location' : 'Start on iPhone' : 'Start preview';
   $('startButton').disabled = busy || connecting || offline || live || plan.status !== 'ready';
+  $('saveButton').disabled = busy || gpxSaving || offline || (live ? !liveSession?.points?.length : plan.status !== 'ready');
   $('pauseButton').hidden = !['playing', 'paused'].includes(state.phase);
   $('pauseButton').textContent = state.phase === 'paused' ? 'Resume' : 'Pause'; $('pauseButton').disabled = busy || offline;
   $('restoreButton').hidden = !live && !iphone; $('restoreButton').textContent = iphone ? 'Restore real location' : 'Stop preview'; $('restoreButton').disabled = busy || offline;
@@ -349,10 +350,78 @@ $('lateralEnabled').onchange = event => { draft.lateralEnabled = event.target.ch
 $('startButton').onclick = () => { if (planner.state.status !== 'ready' || locked()) return; action(async () => { await control('start', {points:routePoints(), checkpoints:draft.waypoints, mode:draft.mode, ...motionData(), loop:draft.mode !== 'stationary' && draft.loop}); }); };
 $('pauseButton').onclick = () => action(async () => { await control('pause', {paused:state.phase !== 'paused'}); });
 $('restoreButton').onclick = () => { motionGeneration++; action(async () => { await control('restore'); }, false); };
-$('saveButton').onclick = () => action(async () => {
-  const blob = await api('export', {points:routePoints(), speed:draft.speed, loop:draft.mode !== 'stationary' && draft.loop}, true);
-  const url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = 'routepilot-' + draft.mode + '.gpx'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 10000);
-});
+$('saveButton').onclick = () => {
+  if (gpxSaving || $('saveButton').disabled) return;
+  const points = state.active ? liveSession.points : routePoints();
+  gpxDraft = {points:structuredClone(points), mode:selectedMode(), units:draft.units, speed:state.active ? state.speed : draft.speed, loop:state.active ? state.loop : draft.loop, total:length(points)};
+  const moving = gpxDraft.mode !== 'stationary' && gpxDraft.total >= .01;
+  $('gpxName').value = moving ? `RoutePilot simulated ${gpxDraft.mode === 'running' ? 'run' : 'drive'}` : 'RoutePilot location';
+  $('gpxFormat').value = moving ? 'activity' : 'route';
+  $('gpxFormat').querySelector('[value="activity"]').disabled = !moving;
+  $('gpxPace').value = RouteGPX.speedToPace(gpxDraft.speed, gpxDraft.units);
+  $('gpxDuration').value = String(Number((gpxDraft.total/(gpxDraft.speed/3.6)/60).toFixed(4)));
+  $('gpxTimingMethod').value = 'pace';
+  const exportSeconds = moving ? gpxDraft.total/(RouteGPX.paceToSpeed($('gpxPace').value,gpxDraft.units)/3.6) : 0;
+  $('gpxStart').value = RouteGPX.localTime(new Date(Date.now()-exportSeconds*1000));
+  $('gpxTimezone').textContent = `(${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
+  $('gpxPaceLabel').textContent = `Pace (min/${U.distanceLabel(gpxDraft.units)})`;
+  $('gpxRouteSummary').textContent = `${gpxDraft.mode === 'stationary' ? 'Stationary location' : gpxDraft.mode === 'running' ? 'Pedestrian route' : 'Driving route'} · ${U.distanceToDisplay(gpxDraft.total,gpxDraft.units).toFixed(2)} ${U.distanceLabel(gpxDraft.units)}${gpxDraft.loop && moving ? ' · One lap' : ''}`;
+  $('gpxError').hidden = $('gpxSuccess').hidden = true;
+  renderGPX(); $('gpxDialog').showModal();
+};
+function gpxSettings() {
+  if (!gpxDraft) throw Error('Open the GPX creator again.');
+  const format = $('gpxFormat').value, timed = format !== 'route', moving = gpxDraft.total >= .01;
+  const name = $('gpxName').value.trim();
+  if (!name || name.length > 100) throw Error('Enter a name of 1–100 characters.');
+  const speed = !timed || !moving ? gpxDraft.speed : $('gpxTimingMethod').value === 'pace' ? RouteGPX.paceToSpeed($('gpxPace').value,gpxDraft.units) : RouteGPX.durationToSpeed($('gpxDuration').value,gpxDraft.total);
+  const seconds = timed ? gpxDraft.total/(speed/3.6) : 0;
+  if (seconds > 365*86400) throw Error('This file would run longer than a year. Use a shorter route or faster pace.');
+  return {points:gpxDraft.points, mode:gpxDraft.mode, loop:false, name, format, speed, ...(timed ? {start_time:RouteGPX.startTime($('gpxStart').value)} : {})};
+}
+function renderGPX() {
+  if (!gpxDraft || gpxSaving) return;
+  const format=$('gpxFormat').value, timed=format!=='route', moving=gpxDraft.total>=.01, pace=$('gpxTimingMethod').value==='pace';
+  $('gpxTiming').hidden=!timed; $('gpxMovingTiming').hidden=!moving;
+  $('gpxPaceField').hidden=!pace; $('gpxDurationField').hidden=pace;
+  $('gpxStart').disabled=!timed; $('gpxPace').disabled=!timed||!moving||!pace; $('gpxDuration').disabled=!timed||!moving||pace;
+  $('gpxFormatNote').textContent = timed ? 'Constant pace; live speed variation and lateral drift are not included. No heart rate, elevation, or calories are invented.' : 'An untimed route for planning and navigation. Use a timed track for an activity uploader.';
+  $('gpxSuccess').hidden=true;
+  try {
+    const settings=gpxSettings(), seconds=timed?gpxDraft.total/(settings.speed/3.6):0;
+    if (timed) {
+      const finish=new Date(new Date(settings.start_time).getTime()+seconds*1000);
+      if (!Number.isFinite(finish.getTime()) || finish.getUTCFullYear()>9999) throw Error('The finish time is outside the supported date range.');
+      $('gpxSummary').textContent=`${duration(seconds)} · Ends ${finish.toLocaleString()}${finish.getTime()>Date.now()+1000 ? ' · Finish time is in the future' : ''}`;
+    } else $('gpxSummary').textContent=`${gpxDraft.points.length.toLocaleString()} route points · No timestamps`;
+    $('gpxError').hidden=true; $('gpxDownload').disabled=gpxSaving;
+  } catch(error) {
+    $('gpxSummary').textContent=''; $('gpxError').textContent=error.message; $('gpxError').hidden=false; $('gpxDownload').disabled=true;
+  }
+}
+$('gpxForm').addEventListener('input',renderGPX);
+$('gpxForm').addEventListener('change',renderGPX);
+$('gpxForm').onsubmit=async event=>{
+  event.preventDefault(); if (gpxSaving) return;
+  gpxSaving=true; $('gpxDownload').disabled=true; $('gpxDownload').textContent='Creating…'; $('gpxSuccess').hidden=true;
+  let saved=false, message='';
+  try {
+    const settings=gpxSettings();
+    $('gpxForm').querySelectorAll('input,select').forEach(input=>{input.disabled=true;});
+    const blob=await api('export',settings,true);
+    const url=URL.createObjectURL(blob), link=document.createElement('a');
+    link.href=url; link.download=RouteGPX.filename(settings.name); document.body.append(link); link.click(); link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+    saved=true;
+  } catch(error) { message=error.message; }
+  finally {
+    gpxSaving=false; $('gpxDownload').textContent='Download GPX';
+    $('gpxForm').querySelectorAll('input,select').forEach(input=>{input.disabled=false;});
+    renderGPX(); $('gpxSuccess').hidden=!saved;
+    if (message) { $('gpxError').textContent=message; $('gpxError').hidden=false; }
+    renderStatus();
+  }
+};
 $('importButton').onclick = () => { $('fileInput').value = ''; $('fileInput').click(); };
 $('fileInput').onchange = () => action(async () => {
   const file = $('fileInput').files[0]; if (!file) return;

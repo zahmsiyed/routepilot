@@ -84,7 +84,7 @@ Use **Search places or addresses** above the map to find a destination. Press En
 - Both variation options are off by default, work only in running/driving modes, and can be adjusted during playback. Stationary remains fixed.
 - **Pause** holds the current position and freezes variation; **Resume** continues. Use **Restore real location** to end a phone simulation. The endpoint remains applied when a route finishes.
 
-The main screen contains mode, units, speed, optional variation, checkpoints, and playback controls. On desktop, Start/Stop remains visible while settings and the checkpoint list scroll. **More options** contains coordinate entry, loops, reversal, and GPX tools. Looping automatically routes the return leg to the first checkpoint. Reversing a trip recalculates it for the selected mode, including one-way road restrictions.
+The main screen contains mode, units, speed, optional variation, checkpoints, playback controls, and **Create GPX**. On desktop, playback and export remain visible while settings and the checkpoint list scroll. **More options** contains coordinate entry, loops, reversal, and GPX import. Looping automatically routes the return leg to the first checkpoint. Reversing a trip recalculates it for the selected mode, including one-way road restrictions.
 
 The route draft is saved in this browser. Reloading during playback recovers the active route, mode, checkpoints, and speed from the controller, while retaining your local checkpoint draft. A storage failure is reported instead of silently promising persistence. Playback runs in the Mac process and continues if the tab closes. Positions update approximately every half second. The selected speed controls coordinate timing; individual apps may derive speed differently. This does not directly set Core Location altitude/heading/speed fields, model traffic, or simulate traffic-aware acceleration/braking. Speed variation uses smooth random targets over 6–12 seconds, and lateral variation uses 8–16-second targets.
 
@@ -104,7 +104,19 @@ These protections cannot guarantee recovery after a forced process kill, Mac shu
 
 Open **More options → Import GPX checkpoints** to import a single GPX track segment, route, or waypoint list (up to 30,000 source points and 4 MB). The interface selects up to 24 evenly spaced checkpoints from the file, retaining the endpoints, then calculates a pedestrian or driving route through them. This intentionally does not replay the original GPX geometry or timestamps exactly. Multi-segment tracks must be split first.
 
-**Export GPX** saves the calculated route with timing from your base speed. Random speed variation and lateral drift are not included in the export. It includes track points for ordinary GPX tools and waypoints for Xcode. Exports preserve route turns and add timed samples, subject to a 30,000-point cap. Some tools may display both representations; RoutePilot reads the track when both exist. Very long exports may exceed the 4 MB import limit.
+Choose **Create GPX** beneath the playback controls after planning a route. No iPhone, recording, or account is needed. Give the file a name and choose:
+
+- **Timed track:** one GPX track with a UTC timestamp on every point. Set the start date/time and either pace (min/km or min/mi) or total duration. The initial start time makes the track finish now; changing timing leaves your chosen start time unchanged. Stationary locations cannot create timed activities.
+- **Planned route:** route points without timestamps, suitable for planning and transferring checkpoints to the Mac controller.
+- **Xcode waypoints:** timestamped waypoints for developer location testing, including stationary positions.
+
+Exports preserve the calculated route's turns and endpoints. Timed files add samples at approximately one-second intervals, coarsening long routes to stay within 30,000 points. Loops export one lap, and exporting during playback snapshots the full active route without changing the session. Timed exports use constant pace; live speed variation and lateral drift are not included. Files identify simulated tracks in their metadata and do not invent elevation, heart rate, or calories. Invalid dates, speeds, zero-length activities, and durations longer than one year are rejected.
+
+### Strava
+
+Strava's [file uploader](https://www.strava.com/upload/select) accepts GPX activity files with timestamps at each track point; an untimed planned route is not an activity recording. Download **Timed track**, then select it in the uploader. Review the activity type and time before saving. Keep test simulations labeled as simulated and set their visibility to **Only You**. Uploading to a Strava account has not been tested by this project.
+
+An ordinary uploaded GPX does not automatically become a **Virtual Run**. Strava requires virtual activities to be recorded through a supported device or integration; changing the iPhone's location does not establish that compatibility. See Strava's [file upload guidance](https://support.strava.com/en-us/articles/15402066-how-do-i-get-my-activities-to-strava), [timestamp requirement](https://support.strava.com/en-us/articles/15402153-why-does-strava-say-time-information-is-missing-from-my-file), and [virtual activity guidance](https://support.strava.com/en-us/articles/15401857-virtual-trainer-activities-on-strava).
 
 ## Stop and recover
 
@@ -141,7 +153,8 @@ Pytest is configured to load only the required asyncio plugin, avoiding unrelate
 Source layout:
 
 - `launch.py`: cached runtime setup and atomic source staging.
-- `routepilot/routes.py`: validated geometry and GPX.
+- `routepilot/routes.py`: validated geometry, GPX parsing, and legacy export.
+- `routepilot/gpx.py`: planned routes, timed tracks, and Xcode GPX creation.
 - `routepilot/routing.py`: validation of external routing responses.
 - `routepilot/geocoding.py`: place/address search, provider validation, caching, and request limits.
 - `routepilot/engine.py`: playback lifecycle.

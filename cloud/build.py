@@ -38,7 +38,7 @@ chmod +x ~/Downloads/RoutePilot/"Launch RoutePilot.command"</code></pre>
     </li>
     <li><strong>Launch and connect.</strong> Double-click <strong>Launch RoutePilot.command</strong> and keep its Terminal window open. The first launch installs dependencies and may take a few minutes. In the local app, select <strong>Connect iPhone</strong>. Live messages show each connection step.</li>
   </ol>
-  <p>To transfer this route, export GPX under <strong>More options</strong>, then import it in the Mac controller. Imported checkpoints are routed again for your selected movement mode; choose the same mode and review the route. Set speed and variation again on the Mac.</p>
+  <p>To transfer this route, choose <strong>Create GPX → Planned route</strong>, then import it in the Mac controller. Imported checkpoints are routed again for your selected movement mode; choose the same mode and review the route. Set speed and variation again on the Mac.</p>
   <div class="dialog-actions"><a class="button" href="http://127.0.0.1:8765/" target="_blank" rel="noopener noreferrer">Open Mac controller</a><a class="button primary" href="/downloads/RoutePilot-Mac.zip" download>Download for Mac</a></div>
   <p class="micro">Open Mac controller works after launching the app on this Mac. The hosted website cannot access your USB devices.</p>
 </dialog>
@@ -49,7 +49,7 @@ chmod +x ~/Downloads/RoutePilot/"Launch RoutePilot.command"</code></pre>
     runtime = CLOUD / 'routepilot_cloud'
     runtime.mkdir(exist_ok=True)
     (runtime / '__init__.py').write_text('"""Shared stateless planner helpers; no device access."""\n')
-    for name in ('routes.py', 'routing.py', 'geocoding.py'):
+    for name in ('routes.py', 'routing.py', 'geocoding.py', 'gpx.py'):
         shutil.copy2(ROOT / 'routepilot' / name, runtime / name)
     downloads = PUBLIC / 'downloads'
     downloads.mkdir()
