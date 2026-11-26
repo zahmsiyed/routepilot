@@ -1,0 +1,292 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 71;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* Vendor/IDevice.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* Vendor/IDevice.xcframework */; };
+		A1000000000000000000000D /* RoutePilotCore in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000000C /* RoutePilotCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10000000000000000000002 /* Vendor/IDevice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Vendor/IDevice.xcframework; sourceTree = "<group>"; };
+		A10000000000000000000003 /* RoutePilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RoutePilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000001 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
+		B10000000000000000000002 /* RoutePilotUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RoutePilotUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXContainerItemProxy section */
+		B10000000000000000000003 = {isa = PBXContainerItemProxy; containerPortal = A10000000000000000000011 /* Project object */; proxyType = 1; remoteGlobalIDString = A10000000000000000000010; remoteInfo = RoutePilot; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A10000000000000000000004 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A10000000000000000000010 /* RoutePilot */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A10000000000000000000005 /* RoutePilot */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A10000000000000000000004 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RoutePilot; sourceTree = "<group>"; };
+		B10000000000000000000005 /* RoutePilotUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = RoutePilotUITests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000009 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* Vendor/IDevice.xcframework in Frameworks */,
+				A1000000000000000000000D /* RoutePilotCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10000000000000000000009 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10000000000000000000006 = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000005 /* RoutePilot */,
+				B10000000000000000000005 /* RoutePilotUITests */,
+				B10000000000000000000001 /* Version.xcconfig */,
+				A10000000000000000000002 /* Vendor/IDevice.xcframework */,
+				A10000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000000000000000000007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000003 /* RoutePilot.app */,
+				B10000000000000000000002 /* RoutePilotUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000000000000000000010 /* RoutePilot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000021 /* Build configuration list for PBXNativeTarget "RoutePilot" */;
+			buildPhases = (
+				A10000000000000000000008 /* Sources */,
+				A10000000000000000000009 /* Frameworks */,
+				A1000000000000000000000A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000005 /* RoutePilot */,
+			);
+			name = RoutePilot;
+			packageProductDependencies = (
+				A1000000000000000000000C /* RoutePilotCore */,
+			);
+			productName = RoutePilot;
+			productReference = A10000000000000000000003 /* RoutePilot.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B10000000000000000000010 /* RoutePilotUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B10000000000000000000021;
+			buildPhases = (B10000000000000000000008, B10000000000000000000009, B1000000000000000000000A,);
+			buildRules = ();
+			dependencies = (B10000000000000000000004,);
+			fileSystemSynchronizedGroups = (B10000000000000000000005,);
+			name = RoutePilotUITests;
+			packageProductDependencies = ();
+			productName = RoutePilotUITests;
+			productReference = B10000000000000000000002;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXTargetDependency section */
+		B10000000000000000000004 = {isa = PBXTargetDependency; target = A10000000000000000000010 /* RoutePilot */; targetProxy = B10000000000000000000003; };
+/* End PBXTargetDependency section */
+
+/* Begin PBXProject section */
+		A10000000000000000000011 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					A10000000000000000000010 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					B10000000000000000000010 = {CreatedOnToolsVersion = 26.6; TestTargetID = A10000000000000000000010; };
+				};
+			};
+			buildConfigurationList = A10000000000000000000020 /* Build configuration list for PBXProject "RoutePilot" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10000000000000000000006;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1000000000000000000000B /* XCLocalSwiftPackageReference "Packages/RoutePilotCore" */,
+			);
+			productRefGroup = A10000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000000000000000000010 /* RoutePilot */,
+				B10000000000000000000010 /* RoutePilotUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A1000000000000000000000A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1000000000000000000000A /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B10000000000000000000008 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A10000000000000000000030 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A10000000000000000000031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A10000000000000000000032 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B10000000000000000000001 /* Version.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7YF5HJPL53;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RoutePilot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000000000000000000033 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B10000000000000000000001 /* Version.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 7YF5HJPL53;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RoutePilot/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B10000000000000000000032 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = dev.zahmsiyed.RoutePilot.UITests; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = RoutePilot; }; name = Debug; };
+		B10000000000000000000033 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = dev.zahmsiyed.RoutePilot.UITests; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; TARGETED_DEVICE_FAMILY = "1,2"; TEST_TARGET_NAME = RoutePilot; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000000000000000000020 /* Build configuration list for PBXProject "RoutePilot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000030 /* Debug */,
+				A10000000000000000000031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000021 /* Build configuration list for PBXNativeTarget "RoutePilot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000032 /* Debug */,
+				A10000000000000000000033 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B10000000000000000000021 = {isa = XCConfigurationList; buildConfigurations = (B10000000000000000000032, B10000000000000000000033,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A1000000000000000000000B /* XCLocalSwiftPackageReference "Packages/RoutePilotCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/RoutePilotCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1000000000000000000000C /* RoutePilotCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000000000000000000000B /* XCLocalSwiftPackageReference "Packages/RoutePilotCore" */;
+			productName = RoutePilotCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A10000000000000000000011 /* Project object */;
+}

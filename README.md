@@ -1,8 +1,24 @@
 # RoutePilot
 
-A local Mac program for planning routes and applying developer-simulated locations to a USB-connected iPhone. Includes stationary, running, and driving modes. No account or API key required.
+Plan stationary, running, or driving routes and create GPX files with a native iPhone app, a local Mac controller, or the hosted web planner. No RoutePilot account or API key required.
 
 Source: [zahmsiyed/routepilot](https://github.com/zahmsiyed/routepilot) (private). Live planner: [routepilot-zeta.vercel.app](https://routepilot-zeta.vercel.app).
+
+## Native iPhone app
+
+The native app in [`ios/`](ios/README.md) runs its maps, route planning, preview,
+GPX import/export, and saved drafts directly on the iPhone. Developer location
+simulation runs through a local LocalDevVPN tunnel after one-time USB pairing;
+it does not need the Mac controller or Vercel during playback. The normal
+connection flow uses one Connect button and automatic port discovery. A fresh
+cellular-only developer connection remains unverified; Wi-Fi may be required by
+iOS even though the app has no Wi-Fi gate.
+
+Open `ios/RoutePilot.xcodeproj` to sign/install with Xcode, or build the unsigned
+IPA for an existing personal sideloading setup. See the [iPhone setup and build
+guide](ios/README.md). Actual location simulation must still be verified on the
+user's iPhone; compile, mock transport, and Simulator checks cannot establish
+hardware or Strava compatibility.
 
 ## Hosted planner on Vercel
 

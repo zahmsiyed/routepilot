@@ -9,3 +9,14 @@ htmlcov/
 .vercel/
 cloud/public/
 cloud/routepilot_cloud/
+ios/Vendor/IDevice.xcframework/
+ios/build/
+ios/Packages/*/.build/
+ios/Packages/*/.swiftpm/
+*.xcuserstate
+xcuserdata/
+*-pairing.plist
+*.mobiledevicepairing
+
+# Unused source icon catalog retained locally; PNG icons are bundled.
+ios/Design/

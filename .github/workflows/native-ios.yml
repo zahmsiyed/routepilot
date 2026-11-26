@@ -1,0 +1,71 @@
+name: Native iPhone app
+
+on:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/native-ios.yml'
+  workflow_dispatch:
+    inputs:
+      run_ui_tests:
+        description: Run the native UI tests in an installed iPhone Simulator
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-and-build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Verify release settings and packaging checks
+        run: |
+          xcodebuild -version
+          python3 ios/scripts/verify-artifact.py --metadata-only
+          python3 -m unittest discover -s ios/scripts/tests -p 'test_*.py'
+          bash -n ios/scripts/build-app.sh ios/scripts/make-pairing.sh
+          sh -n ios/scripts/fetch-idevice.sh
+          plutil -lint ios/RoutePilot/Info.plist ios/RoutePilot.xcodeproj/project.pbxproj
+      - name: Test native geometry, playback, and GPX
+        run: swift test --package-path ios/Packages/RoutePilotCore
+      - name: Test device connection orchestration with fake transports
+        run: bash ios/scripts/test-device-connection.sh
+      - name: Fetch verified device library
+        run: bash ios/scripts/fetch-idevice.sh
+      - name: Build and verify unsigned iPhone artifact
+        run: |
+          bash ios/scripts/build-app.sh device
+          python3 ios/scripts/verify-artifact.py ios/build/device/RoutePilot-unsigned.ipa
+      - name: Run native UI tests
+        if: github.event_name == 'pull_request' || inputs.run_ui_tests
+        run: |
+          SIMULATOR_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; devices=json.load(sys.stdin)["devices"]; print(next(d["udid"] for runtime, entries in reversed(list(devices.items())) if "iOS" in runtime for d in entries if d["name"].startswith("iPhone")))')
+          xcodebuild -project ios/RoutePilot.xcodeproj -scheme RoutePilot -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath "$RUNNER_TEMP/RoutePilotTests" -resultBundlePath "$RUNNER_TEMP/RoutePilotUITests.xcresult" CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES test
+      - name: Retain Simulator test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: RoutePilot-Simulator-results-${{ github.run_number }}
+          path: ${{ runner.temp }}/RoutePilotUITests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Retain manually requested unsigned artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: RoutePilot-unsigned-${{ github.run_number }}
+          path: |
+            ios/build/device/RoutePilot-unsigned.ipa
+            ios/build/device/RoutePilot-unsigned.ipa.sha256
+            ios/build/device/RoutePilot-unsigned.json
+          if-no-files-found: error
+          retention-days: 14
