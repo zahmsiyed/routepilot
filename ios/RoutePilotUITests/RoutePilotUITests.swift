@@ -93,6 +93,13 @@ final class RoutePilotUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["iPhone connection"].waitForExistence(timeout: 5))
         app.navigationBars["iPhone connection"].buttons["Done"].tap()
         XCTAssertTrue(app.buttons["Preview"].waitForExistence(timeout: 5))
+        let window = app.windows.firstMatch.frame
+        print("LANDSCAPE WINDOW: \(window)")
+        for name in ["Preview", "Start on iPhone", "createGPX", "iPhone setup", "Search locations", "Fit route"] {
+            let control = app.buttons[name]
+            print("LANDSCAPE CONTROL \(name): \(control.frame)")
+            XCTAssertTrue(window.insetBy(dx: -1, dy: -1).contains(control.frame), "\(name) must remain within the app window")
+        }
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Dark landscape"
         attachment.lifetime = .keepAlways
