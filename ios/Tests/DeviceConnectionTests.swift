@@ -202,6 +202,38 @@ final class LockedTestCounter: @unchecked Sendable {
             count += 1
         }
         do {
+            let fake = FakeTransport(), d = defaults(17)
+            d.set(53233, forKey: "device.lastPort")
+            var timeouts: [UInt16: TimeInterval] = [:], env = environment(fake, d)
+            env.discover = { PairingDiscoveryResult(services: [.init(port: 63501, isThisDevice: true)]) }
+            env.probe = { _, port, timeout in
+                timeouts[port] = timeout
+                throw DeviceError(.localTunnel, "timeout on \(port)")
+            }
+            let device = DeviceConnection(environment: env)
+            try await expectFailure { try await device.connect() }
+            let detail = device.lastTechnicalError ?? ""
+            try check([53233, 63501, 49152].allSatisfy { detail.contains("timeout on \($0)") }, "failure preserves each candidate reason, including the advertised port")
+            try check(timeouts[63501] == 3 && timeouts[53233] == 1.5 && timeouts[49152] == 1.5, "advertised port receives a longer bounded TCP deadline")
+            try check(device.progress.contains { $0.contains("advertises developer port 63501") }, "discovered service is distinguished from TCP reachability")
+            try check(detail.contains("Pairing authentication was not attempted") && !fake.events.contains { $0.hasPrefix("open:") }, "unreachable sockets never authenticate or mutate device services")
+            count += 1
+        }
+        do {
+            let fake = FakeTransport(); var probes: [UInt16] = [], env = environment(fake, defaults(18))
+            env.discover = { PairingDiscoveryResult(services: [.init(port: 63501, isThisDevice: true)]) }
+            env.probe = { _, port, _ in
+                probes.append(port)
+                if port == 49152 { throw DeviceError(.localTunnel, "old port") }
+                throw DeviceError(.localNetwork, "local network denied by iOS")
+            }
+            let device = DeviceConnection(environment: env)
+            try await expectFailure { try await device.connect() }
+            try check(probes == [49152, 63501] && device.lastTechnicalError == "local network denied by iOS", "permission denial during discovered-port probing stops fallback checks")
+            try check(device.lastError?.contains("Local Network") == true && !fake.events.contains { $0.hasPrefix("open:") }, "permission denial remains actionable and never reaches native authentication")
+            count += 1
+        }
+        do {
             let fake = FakeTransport(); fake.mounted = false
             var env = environment(fake,defaults(13))
             env.prepareDDI = { _,_ in try await Task.sleep(for:.seconds(5)); return URL(fileURLWithPath:"/tmp/fake-ddi") }

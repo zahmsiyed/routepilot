@@ -1,5 +1,5 @@
 // Shared by Xcode, the unsigned build script, and artifact validation.
-MARKETING_VERSION = 1.1
-CURRENT_PROJECT_VERSION = 2
+MARKETING_VERSION = 1.1.1
+CURRENT_PROJECT_VERSION = 3
 IPHONEOS_DEPLOYMENT_TARGET = 17.4
 PRODUCT_BUNDLE_IDENTIFIER = dev.zahmsiyed.RoutePilot

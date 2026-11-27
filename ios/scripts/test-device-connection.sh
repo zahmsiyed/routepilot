@@ -18,3 +18,4 @@ xcrun swiftc -parse-as-library -O -target "$(uname -m)-apple-macos13.0" -D DEVIC
   "$ROOT/Tests/DeviceConnectionTests.swift" \
   -framework Network -o "$WORK/connection-tests"
 "$WORK/connection-tests"
+bash "$ROOT/scripts/test-socket-probe.sh"

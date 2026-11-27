@@ -120,20 +120,22 @@ final class DeviceConnection: ObservableObject {
 
     private func selectPort(host: String, manual: UInt16?) async throws -> UInt16 {
         var attempted = Set<UInt16>()
-        var last: Error?
-        func probe(_ port: UInt16) async throws -> Bool {
+        var failures: [String] = []
+        func probe(_ port: UInt16, timeout: TimeInterval = 1.5) async throws -> Bool {
             attempted.insert(port)
             try Task.checkCancellation()
             stage(.checkingSocket, "Checking local tunnel at \(host):\(port)…")
             do {
-                try await environment.probe(host, port, 1.5)
+                try await environment.probe(host, port, timeout)
                 try Task.checkCancellation()
                 selectedEndpoint = "\(host):\(port)"
                 return true
             } catch is CancellationError { throw CancellationError() }
             catch {
                 if (error as? DeviceError)?.kind == .localNetwork { throw error }
-                last = error; log("No reachable developer socket on port \(port).")
+                let detail = "\(host):\(port): \(error.localizedDescription)"
+                failures.append(detail)
+                log("TCP check failed at \(detail)")
                 return false
             }
         }
@@ -147,12 +149,21 @@ final class DeviceConnection: ObservableObject {
             try Task.checkCancellation()
             if discovery.searchFailed { log("Bonjour was unavailable. Allow Local Network access in Settings and confirm wireless developer access was enabled during USB pairing. Saved local ports can still work without Wi-Fi.") }
             let ownPorts = discovery.services.filter(\.isThisDevice).map(\.port)
+            let advertisedPorts = Set(ownPorts)
             if ownPorts.isEmpty { log("No matching advertisement from this iPhone. Checking the default local port.") }
+            else {
+                let ports = advertisedPorts.sorted().map(String.init).joined(separator: ", ")
+                log("This iPhone advertises developer port\(advertisedPorts.count == 1 ? "" : "s") \(ports). An advertisement does not confirm that the VPN can reach it.")
+            }
             var seen = attempted
             let candidates = (ownPorts + [49152]).filter { $0 > 0 && seen.insert($0).inserted }.prefix(3)
-            for candidate in candidates { if try await probe(candidate) { return candidate } }
+            for candidate in candidates {
+                // Give the current advertised service time for a TCP retransmit
+                // while keeping stale/default candidates quick and cancellable.
+                if try await probe(candidate, timeout: advertisedPorts.contains(candidate) ? 3 : 1.5) { return candidate }
+            }
         }
-        throw DeviceError(.localTunnel, "The local developer socket could not be reached. \(last?.localizedDescription ?? "No candidate port was available.")")
+        throw DeviceError(.localTunnel, "No developer TCP connection succeeded. Pairing authentication was not attempted.\n" + failures.joined(separator: "\n"))
     }
 
     func set(latitude: Double, longitude: Double) async throws {
@@ -246,7 +257,7 @@ final class DeviceConnection: ObservableObject {
         case .localNetwork:
             hint = "Allow RoutePilot’s Local Network access in iPhone Settings, then retry."
         case .localTunnel:
-            hint = "Enable LocalDevVPN and check the local host or manual port. A fresh developer connection may require Wi-Fi on some iOS versions; existing local connections can work on cellular."
+            hint = "Open LocalDevVPN and confirm its main screen says Connected. Allow RoutePilot in Settings → Privacy & Security → Local Network. If you are on cellular, join Wi-Fi and retry with the same Device IP and automatic port."
         case .tunnel:
             hint = "The socket responded but developer authentication failed. Check Developer Mode and this iPhone’s pairing file."
         case .ddiDownload:

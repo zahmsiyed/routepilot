@@ -52,7 +52,7 @@ struct DeviceSetupView: View {
                         instruction("1", "Enable Developer Mode", "Settings → Privacy & Security → Developer Mode. Restart and confirm if asked.")
                         instruction("2", "Allow network connections", "Connect to the Mac by USB. In Finder → your iPhone → General, enable Show this iPhone when on Wi-Fi, then Apply. This enables the phone’s developer network service.")
                         instruction("3", "Import your pairing file", "Run the supplied make-pairing.sh once on the Mac. AirDrop its .plist to this iPhone and import it here. Keep this private device credential secure.")
-                        instruction("4", "Connect LocalDevVPN", "Enable its local tunnel, then return here and tap Connect. Keep it enabled during playback and restoration. No Mac is needed after setup.")
+                        instruction("4", "Connect LocalDevVPN", "Open its main screen, tap Connect and wait until it says Connected. Return here and tap Connect. Keep it enabled during playback and restoration. No Mac is needed after setup.")
                         Link("LocalDevVPN setup reference", destination: URL(string: "https://github.com/StikDebug/StikDebug#requirements")!)
                         Text("If a fresh connection fails on cellular, connect to Wi-Fi and retry. Automatic port discovery needs Local Network permission. An iOS update or reset may require a new pairing file.").font(.caption).foregroundStyle(.secondary)
                     }
@@ -147,7 +147,7 @@ struct DeviceSetupView: View {
                 ForEach(Array(model.device.progress.enumerated()), id: \.offset) { _, text in Text(text).font(.caption).foregroundStyle(.secondary) }
                 if let technical = model.device.lastTechnicalError { Text(technical).font(.system(.caption2, design: .monospaced)).textSelection(.enabled) }
                 Button(copied ? "Copied" : "Copy diagnostics", systemImage: "doc.on.doc") {
-                    UIPasteboard.general.string = (["RoutePilot \(version)", model.device.status] + model.device.progress + [model.device.lastTechnicalError].compactMap { $0 }).joined(separator: "\n")
+                    UIPasteboard.general.string = (["RoutePilot \(version)", "iOS \(UIDevice.current.systemVersion)", model.device.status] + model.device.progress + [model.device.lastTechnicalError].compactMap { $0 }).joined(separator: "\n")
                     copied = true
                 }
             }

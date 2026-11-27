@@ -1,6 +1,6 @@
 # RoutePilot for iPhone
 
-RoutePilot 1.1 (build 2) is a native SwiftUI app with Apple Maps, pedestrian and driving routes,
+RoutePilot 1.1.1 (build 3) is a native SwiftUI app with Apple Maps, pedestrian and driving routes,
 stationary locations, draggable/removable checkpoints, Undo, speed controls,
 metric/imperial units, bounded speed/lateral variation, preview, and local GPX
 creation/import. It runs on the iPhone without the Mac controller or Vercel.
@@ -100,6 +100,16 @@ An already available developer service may be reachable over the local tunnel
 while cellular is active. A fresh connection can still be restricted by iOS;
 cellular-only connection and sustained playback have not been verified on the
 user's iPhone. If connection fails, join Wi-Fi and tap Connect again.
+
+If the log finds an advertised port but every TCP check fails, discovery worked;
+the local developer connection has not reached pairing authentication. Open
+LocalDevVPN's main screen and confirm **Connected** (its settings screen alone
+does not confirm this). Check **Settings → Privacy & Security → Local Network →
+RoutePilot**, then retry on Wi-Fi without changing the IPs or turning off
+automatic port selection. There is no reason to replace the pairing file based
+on a TCP timeout alone. Copy diagnostics if Wi-Fi also fails; these include the
+iOS/app versions, every candidate's TCP error, and network-path categories,
+without pairing keys, Wi-Fi names, or network-interface identifiers.
 
 Automatic discovery requires Local Network permission. Under **Advanced
 connection settings**, Device address must match LocalDevVPN's **Device IP**,
