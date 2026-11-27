@@ -155,8 +155,12 @@ final class DeviceConnection: ObservableObject {
                 let ports = advertisedPorts.sorted().map(String.init).joined(separator: ", ")
                 log("This iPhone advertises developer port\(advertisedPorts.count == 1 ? "" : "s") \(ports). An advertisement does not confirm that the VPN can reach it.")
             }
-            var seen = attempted
-            let candidates = (ownPorts + [49152]).filter { $0 > 0 && seen.insert($0).inserted }.prefix(3)
+            var seen = Set<UInt16>()
+            // Discovery may confirm the saved port that just timed out. Allow
+            // one longer TCP recheck of it, within the same four-check budget.
+            let candidates = (ownPorts + [49152]).filter {
+                $0 > 0 && (advertisedPorts.contains($0) || !attempted.contains($0)) && seen.insert($0).inserted
+            }.prefix(3)
             for candidate in candidates {
                 // Give the current advertised service time for a TCP retransmit
                 // while keeping stale/default candidates quick and cancellable.

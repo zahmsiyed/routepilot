@@ -103,8 +103,9 @@ user's iPhone. If connection fails, join Wi-Fi and tap Connect again.
 
 If the log finds an advertised port but every TCP check fails, discovery worked;
 the local developer connection has not reached pairing authentication. Open
-LocalDevVPN's main screen and confirm **Connected** (its settings screen alone
-does not confirm this). Check **Settings → Privacy & Security → Local Network →
+LocalDevVPN's main screen using **Open LocalDevVPN** and confirm **Connected**
+(its settings screen alone does not confirm this). Check **Settings → Privacy &
+Security → Local Network →
 RoutePilot**, then retry on Wi-Fi without changing the IPs or turning off
 automatic port selection. There is no reason to replace the pairing file based
 on a TCP timeout alone. Copy diagnostics if Wi-Fi also fails; these include the

@@ -234,6 +234,21 @@ final class LockedTestCounter: @unchecked Sendable {
             count += 1
         }
         do {
+            let fake = FakeTransport(), d = defaults(19)
+            d.set(63501, forKey: "device.lastPort")
+            var probes: [(UInt16, TimeInterval)] = [], env = environment(fake, d)
+            env.discover = { PairingDiscoveryResult(services: [.init(port: 63501, isThisDevice: true), .init(port: 63501, isThisDevice: true)]) }
+            env.probe = { _, port, timeout in
+                probes.append((port, timeout))
+                if timeout < 3 { throw DeviceError(.localTunnel, "VPN still warming") }
+            }
+            let device = DeviceConnection(environment: env)
+            try await device.connect()
+            try check(probes.map { $0.0 } == [63501, 63501] && probes.map { $0.1 } == [1.5, 3], "fresh discovery confirms one longer recheck of a previously failed saved port")
+            try check(device.isConnected && fake.events.filter { $0.hasPrefix("open:") } == ["open:63501"], "a warming TCP route still starts only one authenticated handshake")
+            count += 1
+        }
+        do {
             let fake = FakeTransport(); fake.mounted = false
             var env = environment(fake,defaults(13))
             env.prepareDDI = { _,_ in try await Task.sleep(for:.seconds(5)); return URL(fileURLWithPath:"/tmp/fake-ddi") }

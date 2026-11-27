@@ -140,6 +140,11 @@ struct DeviceSetupView: View {
             Label(model.device.status, systemImage: model.device.lastError == nil ? "info.circle" : "exclamationmark.triangle")
                 .font(.subheadline).accessibilityIdentifier("deviceStatus")
             if model.device.lastError != nil {
+                Button("Open LocalDevVPN", systemImage: "network") {
+                    openURL(URL(string: "localdevvpn://")!) { opened in
+                        if !opened { localError = "Open LocalDevVPN from the Home Screen and confirm it says Connected." }
+                    }
+                }
                 Button("Open iPhone Settings", systemImage: "gear") { if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) } }
             }
             if let endpoint = model.device.selectedEndpoint { LabeledContent("Endpoint", value: endpoint).font(.caption).monospacedDigit() }
